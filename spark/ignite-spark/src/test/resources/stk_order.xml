@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!--
+    Ignite Spring configuration file to startup Ignite cache.
+
+    This file demonstrates how to configure cache using Spring. Provided cache
+    will be created on node startup.
+
+    When starting a standalone node, you need to execute the following command:
+    {IGNITE_HOME}/bin/ignite.{bat|sh} examples/config/example-shared-rdd.xml
+
+    When starting Ignite from Java IDE, pass path to this file to Ignition:
+    Ignition.start("examples/config/example-shared-rdd.xml");
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="affinity" class="org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction">
+        <property name="partitions" value="36"/>
+    </bean>
+    <bean id="affinity360" class="org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction">
+        <property name="partitions" value="360"/>
+    </bean>
+
+    <bean id="ignite.cfg" class="org.apache.ignite.configuration.IgniteConfiguration">
+        <property name="igniteInstanceName" value="txt-test"/>
+        <property name="failureDetectionTimeout" value="50000"/>
+        <property name="clientMode" value="true"/>
+        <property name="networkTimeout" value="#{60 * 1000}"/>
+        <property name="systemWorkerBlockedTimeout" value="#{60 * 60 * 1000}"/>
+        <property name="cacheConfiguration">
+            <array>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="backups" value="0" />
+                    <property name="sqlSchema" value="PUBLIC" />
+                    <property name="affinity" ref="affinity"/>
+                    <!-- Set a cache name. -->
+                    <property name="name" value="stk_order1"/>
+                    <!-- Set a cache mode. -->
+                    <property name="cacheMode" value="PARTITIONED"/>
+                    <property name="dataRegionName" value="12GRegion"/>
+                    <property name="rebalanceMode" value="SYNC"/>
+                </bean>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="backups" value="0" />
+                    <property name="sqlSchema" value="PUBLIC" />
+                    <property name="affinity" ref="affinity"/>
+                    <!-- Set a cache name. -->
+                    <property name="name" value="stk_order2"/>
+                    <!-- Set a cache mode. -->
+                    <property name="cacheMode" value="PARTITIONED"/>
+                    <property name="dataRegionName" value="12GRegion"/>
+                    <property name="rebalanceMode" value="SYNC"/>
+                </bean>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="backups" value="0" />
+                    <property name="sqlSchema" value="PUBLIC1" />
+                    <property name="affinity" ref="affinity360"/>
+                    <!-- Set a cache name. -->
+                    <property name="name" value="stk_order11"/>
+                    <!-- Set a cache mode. -->
+                    <property name="cacheMode" value="PARTITIONED"/>
+                    <property name="dataRegionName" value="12GRegion"/>
+                    <property name="rebalanceMode" value="SYNC"/>
+                    <property name="queryEntities">
+                        <list>
+                            <bean class="org.apache.ignite.cache.QueryEntity">
+                                <property name="tableName" value="STK_ORDER11"/>
+                                <property name="indexes">
+                                    <list>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="TRD_DATE"/>
+                                        </bean>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="ORDER_SN"/>
+                                        </bean>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="SUBSYS_SN"/>
+                                        </bean>
+                                    </list>
+                                </property>
+                                <property name="keyFields">
+                                    <list>
+                                        <value>TRD_DATE</value>
+                                        <value>ORDER_SN</value>
+                                        <value>SUBSYS_SN</value>
+                                    </list>
+                                </property>
+                                <property name="keyType" value="entity.StkOrderKey"/>
+                                <property name="valueType" value="entity.StkOrder"/>
+                                <property name="fields">
+                                    <map>
+                                        <entry key="TRD_DATE" value="java.lang.Integer"/>
+                                        <entry key="REC_SN" value="java.lang.Long"/>
+                                        <entry key="ORDER_TIME" value="java.sql.Timestamp"/>
+                                        <entry key="ORDER_SN" value="java.lang.Long"/>
+                                        <entry key="ORDER_BSN" value="java.lang.Long"/>
+                                        <entry key="ORDER_ID" value="java.lang.String"/>
+                                        <entry key="RAW_ORDER_ID" value="java.lang.String"/>
+                                        <entry key="ORDER_TYPE" value="java.lang.String"/>
+                                        <entry key="ORDER_STATUS" value="java.lang.String"/>
+                                        <entry key="SUBSYS" value="java.lang.Integer"/>
+                                        <entry key="SUBSYS_SN" value="java.lang.String"/>
+                                        <entry key="INT_ORG" value="java.lang.Integer"/>
+                                        <entry key="CUST_CODE" value="java.lang.String"/>
+                                        <entry key="CUST_NAME" value="java.lang.String"/>
+                                        <entry key="CUST_TYPE" value="java.lang.String"/>
+                                        <entry key="CUST_CLS" value="java.lang.String"/>
+                                        <entry key="CUACCT_CODE" value="java.lang.String"/>
+                                        <entry key="CUACCT_ATTR" value="java.lang.String"/>
+                                        <entry key="CUACCT_CLS" value="java.lang.String"/>
+                                        <entry key="CUACCT_LVL" value="java.lang.String"/>
+                                        <entry key="CUACCT_GRP" value="java.lang.String"/>
+                                        <entry key="CUACCT_DMF" value="java.lang.String"/>
+                                        <entry key="BANK_CODE" value="java.lang.Long"/>
+                                        <entry key="MARKET" value="java.lang.String"/>
+                                        <entry key="BOARD" value="java.lang.String"/>
+                                        <entry key="STKPBU" value="java.lang.String"/>
+                                        <entry key="FIRMID" value="java.lang.String"/>
+                                        <entry key="TRDACCT" value="java.lang.String"/>
+                                        <entry key="TRDACCT_EXID" value="java.lang.String"/>
+                                        <entry key="TRDACCT_TYPE" value="java.lang.String"/>
+                                        <entry key="TRDACCT_EXCLS" value="java.lang.String"/>
+                                        <entry key="TRD_ID" value="java.lang.String"/>
+                                        <entry key="STK_BIZ_EX" value="java.lang.String"/>
+                                        <entry key="STK_CODE" value="java.lang.String"/>
+                                        <entry key="STK_NAME" value="java.lang.String"/>
+                                        <entry key="STK_CLS" value="java.lang.String"/>
+                                        <entry key="CURRENCY" value="java.lang.String"/>
+                                        <entry key="BOND_INT" value="java.lang.Integer"/>
+                                        <entry key="ORDER_PRICE" value="scala.math.BigDecimal"/>
+                                        <entry key="ORDER_QTY" value="java.lang.Long"/>
+                                        <entry key="ORDER_AMT" value="java.lang.Long"/>
+                                        <entry key="ORDER_FRZ_AMT" value="java.lang.Long"/>
+                                        <entry key="ORDER_UFZ_AMT" value="java.lang.Long"/>
+                                        <entry key="WITHDRAWN_QTY" value="java.lang.Long"/>
+                                        <entry key="MATCHED_QTY" value="java.lang.Long"/>
+                                        <entry key="MATCHED_AMT" value="java.lang.Long"/>
+                                        <entry key="RLT_SETT_AMT" value="java.lang.Long"/>
+                                        <entry key="IS_WITHDRAW" value="java.lang.String"/>
+                                        <entry key="IS_WITHDRAWN" value="java.lang.String"/>
+                                        <entry key="OP_USER" value="java.lang.String"/>
+                                        <entry key="OP_ROLE" value="java.lang.String"/>
+                                        <entry key="OP_NAME" value="java.lang.String"/>
+                                        <entry key="OP_ORG" value="java.lang.Long"/>
+                                        <entry key="OP_SITE" value="java.lang.String"/>
+                                        <entry key="CHANNEL" value="java.lang.String"/>
+                                        <entry key="UPDATE_TIME" value="java.sql.Timestamp"/>
+                                        <entry key="MEETING_CODE" value="java.lang.String"/>
+                                        <entry key="VOTE_ID" value="java.lang.String"/>
+                                        <entry key="ORDER_DETAIL_FLAG" value="java.lang.String"/>
+                                        <entry key="MATCH_TIME" value="java.lang.Integer"/>
+                                        <entry key="RPTPBU" value="java.lang.String"/>
+                                    </map>
+                                </property>
+                            </bean>
+                        </list>
+                    </property>
+
+                </bean>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="backups" value="0" />
+                    <property name="sqlSchema" value="PUBLIC1" />
+                    <property name="affinity" ref="affinity360"/>
+                    <!-- Set a cache name. -->
+                    <property name="name" value="stk_order12"/>
+                    <!-- Set a cache mode. -->
+                    <property name="cacheMode" value="PARTITIONED"/>
+                    <property name="dataRegionName" value="12GRegion"/>
+                    <property name="rebalanceMode" value="SYNC"/>
+                    <property name="queryEntities">
+                        <list>
+                            <bean class="org.apache.ignite.cache.QueryEntity">
+                                <property name="tableName" value="STK_ORDER12"/>
+                                <property name="indexes">
+                                    <list>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="TRD_DATE"/>
+                                        </bean>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="ORDER_SN"/>
+                                        </bean>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="SUBSYS_SN"/>
+                                        </bean>
+                                    </list>
+                                </property>
+                                <property name="keyFields">
+                                    <list>
+                                        <value>TRD_DATE</value>
+                                        <value>ORDER_SN</value>
+                                        <value>SUBSYS_SN</value>
+                                    </list>
+                                </property>
+                                <property name="keyType" value="entity.StkOrderKey"/>
+                                <property name="valueType" value="entity.StkOrder"/>
+                                <property name="fields">
+                                    <map>
+                                        <entry key="TRD_DATE" value="java.lang.Integer"/>
+                                        <entry key="REC_SN" value="java.lang.Long"/>
+                                        <entry key="ORDER_TIME" value="java.sql.Timestamp"/>
+                                        <entry key="ORDER_SN" value="java.lang.Long"/>
+                                        <entry key="ORDER_BSN" value="java.lang.Long"/>
+                                        <entry key="ORDER_ID" value="java.lang.String"/>
+                                        <entry key="RAW_ORDER_ID" value="java.lang.String"/>
+                                        <entry key="ORDER_TYPE" value="java.lang.String"/>
+                                        <entry key="ORDER_STATUS" value="java.lang.String"/>
+                                        <entry key="SUBSYS" value="java.lang.Integer"/>
+                                        <entry key="SUBSYS_SN" value="java.lang.String"/>
+                                        <entry key="INT_ORG" value="java.lang.Integer"/>
+                                        <entry key="CUST_CODE" value="java.lang.String"/>
+                                        <entry key="CUST_NAME" value="java.lang.String"/>
+                                        <entry key="CUST_TYPE" value="java.lang.String"/>
+                                        <entry key="CUST_CLS" value="java.lang.String"/>
+                                        <entry key="CUACCT_CODE" value="java.lang.String"/>
+                                        <entry key="CUACCT_ATTR" value="java.lang.String"/>
+                                        <entry key="CUACCT_CLS" value="java.lang.String"/>
+                                        <entry key="CUACCT_LVL" value="java.lang.String"/>
+                                        <entry key="CUACCT_GRP" value="java.lang.String"/>
+                                        <entry key="CUACCT_DMF" value="java.lang.String"/>
+                                        <entry key="BANK_CODE" value="java.lang.Long"/>
+                                        <entry key="MARKET" value="java.lang.String"/>
+                                        <entry key="BOARD" value="java.lang.String"/>
+                                        <entry key="STKPBU" value="java.lang.String"/>
+                                        <entry key="FIRMID" value="java.lang.String"/>
+                                        <entry key="TRDACCT" value="java.lang.String"/>
+                                        <entry key="TRDACCT_EXID" value="java.lang.String"/>
+                                        <entry key="TRDACCT_TYPE" value="java.lang.String"/>
+                                        <entry key="TRDACCT_EXCLS" value="java.lang.String"/>
+                                        <entry key="TRD_ID" value="java.lang.String"/>
+                                        <entry key="STK_BIZ_EX" value="java.lang.String"/>
+                                        <entry key="STK_CODE" value="java.lang.String"/>
+                                        <entry key="STK_NAME" value="java.lang.String"/>
+                                        <entry key="STK_CLS" value="java.lang.String"/>
+                                        <entry key="CURRENCY" value="java.lang.String"/>
+                                        <entry key="BOND_INT" value="java.lang.Integer"/>
+                                        <entry key="ORDER_PRICE" value="scala.math.BigDecimal"/>
+                                        <entry key="ORDER_QTY" value="java.lang.Long"/>
+                                        <entry key="ORDER_AMT" value="java.lang.Long"/>
+                                        <entry key="ORDER_FRZ_AMT" value="java.lang.Long"/>
+                                        <entry key="ORDER_UFZ_AMT" value="java.lang.Long"/>
+                                        <entry key="WITHDRAWN_QTY" value="java.lang.Long"/>
+                                        <entry key="MATCHED_QTY" value="java.lang.Long"/>
+                                        <entry key="MATCHED_AMT" value="java.lang.Long"/>
+                                        <entry key="RLT_SETT_AMT" value="java.lang.Long"/>
+                                        <entry key="IS_WITHDRAW" value="java.lang.String"/>
+                                        <entry key="IS_WITHDRAWN" value="java.lang.String"/>
+                                        <entry key="OP_USER" value="java.lang.String"/>
+                                        <entry key="OP_ROLE" value="java.lang.String"/>
+                                        <entry key="OP_NAME" value="java.lang.String"/>
+                                        <entry key="OP_ORG" value="java.lang.Long"/>
+                                        <entry key="OP_SITE" value="java.lang.String"/>
+                                        <entry key="CHANNEL" value="java.lang.String"/>
+                                        <entry key="UPDATE_TIME" value="java.sql.Timestamp"/>
+                                        <entry key="MEETING_CODE" value="java.lang.String"/>
+                                        <entry key="VOTE_ID" value="java.lang.String"/>
+                                        <entry key="ORDER_DETAIL_FLAG" value="java.lang.String"/>
+                                        <entry key="MATCH_TIME" value="java.lang.Integer"/>
+                                        <entry key="RPTPBU" value="java.lang.String"/>
+                                    </map>
+                                </property>
+                            </bean>
+                        </list>
+                    </property>
+
+                </bean>
+            </array>
+        </property>
+
+        <!-- Explicitly configure TCP discovery SPI to provide list of initial nodes. -->
+        <property name="discoverySpi">
+            <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+                <!--10s-->
+                <property name="networkTimeout" value="#{20*1000}"/>
+                <property name="ackTimeout" value="30000" />
+                <property name="socketTimeout" value="30000"/>
+                <property name="ipFinder">
+                    <!--
+                        Ignite provides several options for automatic discovery that can be used
+                        instead os static IP based discovery. For information on all options refer
+                        to our documentation: http://apacheignite.readme.io/docs/cluster-config
+                    -->
+                    <!-- Uncomment static IP finder to enable static-based discovery of initial nodes. -->
+                    <!--<bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">-->
+                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">
+                        <property name="addresses">
+                            <list>
+                                <!-- In distributed environment, replace with actual host IP address. -->
+                                <!-- <value>127.0.0.1:47500..47509</value>-->
+                                <value>192.168.50.88:47500..47509</value>
+                       <!--         <value>10.202.83.202:47500..47509</value>-->
+                                <value>192.168.50.85:47500..47509</value>
+                                <value>192.168.50.86:47500..47509</value>
+                                <value>192.168.50.87:47500..47509</value>
+
+                                <!--     <value>10.202.83.202:47500..47509</value>
+                                     <value>10.202.83.203:47500..47509</value>
+                                     <value>10.202.83.204:47500..47509</value>-->
+                            </list>
+                        </property>
+                    </bean>
+                </property>
+            </bean>
+        </property>
+        <!-- Ignite节点默认设置至多消耗本地可用内存的20%，需要调整内存大小参数 -->
+        <property name="dataStorageConfiguration">
+
+            <bean class="org.apache.ignite.configuration.DataStorageConfiguration">
+                <property name="defaultDataRegionConfiguration">
+                    <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                        <property name="name" value="default"/>
+                        <property name="maxSize" value="#{5L * 1024 * 1024 * 1024}"/>
+                        <!--退出策略:缓存空间不够时的删除条目的算法-->
+                        <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                    </bean>
+                </property>
+
+                <property name="pageSize" value="4096"/>
+                <property name="dataRegionConfigurations">
+                    <list>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="12GRegion"/>
+                            <property name="maxSize" value="#{12L * 1024 * 1024 * 1024}"/>
+                            <!-- 启用数据区指标 -->
+                            <property name="metricsEnabled" value="true"/>
+                            <!--退出策略:缓存空间不够时的删除条目的算法-->
+                            <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                            <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="500MRegion"/>
+                            <property name="maxSize" value="#{500 * 1024 * 1024}"/>
+                            <!-- 启用数据区指标 -->
+                            <property name="metricsEnabled" value="true"/>
+                            <!--退出策略:缓存空间不够时的删除条目的算法-->
+                            <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                            <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="5GRegion"/>
+                            <property name="maxSize" value="#{500 * 1024 * 1024}"/>
+                            <!-- 启用数据区指标 -->
+                            <property name="metricsEnabled" value="true"/>
+                            <!--退出策略:缓存空间不够时的删除条目的算法-->
+                            <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                            <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+                    </list>
+                </property>
+                <!--  预写日志(WAL)模式
+                              FSYNC 数据更新不会丢失，不管是任何的操作系统或者进程故障，甚至是电源故障。
+                LOG_ONLY 默认模式，如果仅仅是进程崩溃数据更新会保留。-->
+                <property name="walMode" value="FSYNC"/>
+                <!--启用原生持久化指标 -->
+                <property name="metricsEnabled" value="true"/>
+                <!-- 原生持久化配置 -->
+                <property name="writeThrottlingEnabled" value="true"/>
+                <property name="checkpointFrequency" value="180000"/>
+                <property name="checkpointThreads" value="4"/>
+            </bean>
+        </property>
+
+    </bean>
+</beans>

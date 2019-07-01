@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<!--
+    Ignite Spring configuration file to startup Ignite cache.
+
+    This file demonstrates how to configure cache using Spring. Provided cache
+    will be created on node startup.
+
+    When starting a standalone node, you need to execute the following command:
+    {IGNITE_HOME}/bin/ignite.{bat|sh} examples/config/example-shared-rdd.xml
+
+    When starting Ignite from Java IDE, pass path to this file to Ignition:
+    Ignition.start("examples/config/example-shared-rdd.xml");
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd">
+    <bean id="affinity" class="org.apache.ignite.cache.affinity.rendezvous.RendezvousAffinityFunction">
+        <property name="partitions" value="36"/>
+    </bean>
+    <bean id="ignite.cfg" class="org.apache.ignite.configuration.IgniteConfiguration">
+        <property name="igniteInstanceName" value="txt-test"/>
+        <property name="failureDetectionTimeout" value="50000"/>
+        <property name="clientMode" value="true"/>
+        <property name="systemWorkerBlockedTimeout" value="#{60 * 60 * 1000}"/>
+        <property name="cacheConfiguration">
+            <array>
+                <bean class="org.apache.ignite.configuration.CacheConfiguration">
+                    <property name="backups" value="1" />
+                    <property name="sqlSchema" value="PUBLIC" />
+                    <property name="affinity" ref="affinity"/>
+                    <!-- Set a cache name. -->
+                    <property name="name" value="objectRDD"/>
+                    <!-- Set a cache mode. -->
+                    <property name="cacheMode" value="PARTITIONED"/>
+                    <property name="dataRegionName" value="500MRegion"/>
+                    <property name="rebalanceMode" value="SYNC"/>
+                    <property name="queryEntities">
+                        <list>
+                            <bean class="org.apache.ignite.cache.QueryEntity">
+                                <property name="tableName" value="PERSON5"/>
+                                <property name="indexes">
+                                    <list>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="id"/>
+                                        </bean>
+                                        <bean class="org.apache.ignite.cache.QueryIndex">
+                                            <constructor-arg value="name"/>
+                                        </bean>
+                                    </list>
+                                </property>
+                                <property name="keyFields">
+                                    <list>
+                                        <value>id</value>
+                                        <value>name</value>
+                                    </list>
+                                </property>
+                                <property name="keyType" value="com.szkingdom.fspt.spark.ignite.test.PersonKey"/>
+                                <property name="valueType" value="com.szkingdom.fspt.spark.ignite.test.Person"/>
+                                <property name="fields">
+                                    <map>
+                                        <entry key="name" value="java.lang.String"/>
+                                        <entry key="id" value="java.lang.String"/>
+                                        <entry key="address" value="java.lang.String"/>
+                                    </map>
+                                </property>
+                            </bean>
+                        </list>
+                    </property>
+                </bean>
+            </array>
+        </property>
+
+        <!-- Explicitly configure TCP discovery SPI to provide list of initial nodes. -->
+        <property name="discoverySpi">
+            <bean class="org.apache.ignite.spi.discovery.tcp.TcpDiscoverySpi">
+                <property name="ipFinder">
+                    <!--
+                        Ignite provides several options for automatic discovery that can be used
+                        instead os static IP based discovery. For information on all options refer
+                        to our documentation: http://apacheignite.readme.io/docs/cluster-config
+                    -->
+                    <!-- Uncomment static IP finder to enable static-based discovery of initial nodes. -->
+                    <!--<bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.vm.TcpDiscoveryVmIpFinder">-->
+                    <bean class="org.apache.ignite.spi.discovery.tcp.ipfinder.multicast.TcpDiscoveryMulticastIpFinder">
+                        <property name="addresses">
+                            <list>
+                                <!-- In distributed environment, replace with actual host IP address. -->
+                                <!-- <value>127.0.0.1:47500..47509</value>-->
+                                <value>192.168.50.88:47500..47509</value>
+                       <!--         <value>10.202.83.202:47500..47509</value>-->
+<!--
+                                <value>192.168.50.85:47500..47509</value>
+-->
+                                <value>192.168.50.86:47500..47509</value>
+
+                                <!--     <value>10.202.83.202:47500..47509</value>
+                                     <value>10.202.83.203:47500..47509</value>
+                                     <value>10.202.83.204:47500..47509</value>-->
+                            </list>
+                        </property>
+                    </bean>
+                </property>
+            </bean>
+        </property>
+        <!-- Ignite节点默认设置至多消耗本地可用内存的20%，需要调整内存大小参数 -->
+        <property name="dataStorageConfiguration">
+
+            <bean class="org.apache.ignite.configuration.DataStorageConfiguration">
+                <property name="defaultDataRegionConfiguration">
+                    <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                        <property name="name" value="default"/>
+                        <property name="maxSize" value="#{5L * 1024 * 1024 * 1024}"/>
+                        <!--退出策略:缓存空间不够时的删除条目的算法-->
+                        <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                    </bean>
+                </property>
+
+                <property name="pageSize" value="4096"/>
+                <property name="dataRegionConfigurations">
+                    <list>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="5GRegion"/>
+                            <property name="maxSize" value="#{5L * 1024 * 1024 * 1024}"/>
+                            <!-- 启用数据区指标 -->
+                            <property name="metricsEnabled" value="true"/>
+                            <!--退出策略:缓存空间不够时的删除条目的算法-->
+                            <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                            <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="500MRegion"/>
+                            <property name="maxSize" value="#{500L * 1024 * 1024}"/>
+                            <!-- 启用数据区指标 -->
+                            <property name="metricsEnabled" value="true"/>
+                            <!--退出策略:缓存空间不够时的删除条目的算法-->
+                            <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                            <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+                    </list>
+                </property>
+                <!--  预写日志(WAL)模式
+                              FSYNC 数据更新不会丢失，不管是任何的操作系统或者进程故障，甚至是电源故障。
+                LOG_ONLY 默认模式，如果仅仅是进程崩溃数据更新会保留。-->
+                <property name="walMode" value="FSYNC"/>
+                <!--启用原生持久化指标 -->
+                <property name="metricsEnabled" value="true"/>
+                <!-- 原生持久化配置 -->
+                <property name="writeThrottlingEnabled" value="true"/>
+                <property name="checkpointFrequency" value="180000"/>
+                <property name="checkpointThreads" value="4"/>
+            </bean>
+        </property>
+
+    </bean>
+</beans>
