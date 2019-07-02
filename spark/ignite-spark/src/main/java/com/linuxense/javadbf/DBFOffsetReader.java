@@ -57,7 +57,7 @@ public class DBFOffsetReader extends DBFReader {
             return null;
         }
         if (record.length == 0) {
-            return new DBFSkipRow(null, null, null);
+            return new DBFSkipRow(record, mapFieldNames, this.header.fieldArray);
         } else {
             return new DBFRow(record, mapFieldNames, this.header.fieldArray);
         }
@@ -115,12 +115,19 @@ public class DBFOffsetReader extends DBFReader {
         return Collections.unmodifiableMap(fieldNames);
     }
 
+   public DBFField[] getFields(){
+        return this.header.userFieldArray;
+   }
     public int getStartOffset() {
         return startOffset;
     }
 
     public void setStartOffset(int startOffset) {
         this.startOffset = startOffset;
+    }
+
+    public int getCurrentOffset() {
+        return currentOffset;
     }
 
     public int getEndOffset() {

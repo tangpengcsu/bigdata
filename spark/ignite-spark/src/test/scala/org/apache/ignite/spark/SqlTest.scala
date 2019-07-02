@@ -30,6 +30,8 @@ class SqlTest extends FunSuite with BeforeAndAfter {
   after {
     igniteContext.close(true)
     sparkContext.stop()
+
+
   }
 
   test("insert") {

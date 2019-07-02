@@ -3,7 +3,7 @@ package com.szkingdom.fspt.dao.file.dbf
 import java.net.URI
 import java.nio.charset.Charset
 
-import com.linuxense.javadbf.DBFOffsetReader
+import com.linuxense.javadbf.{DBFField, DBFOffsetReader, DBFReader}
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.deploy.SparkHadoopUtil
@@ -23,15 +23,17 @@ case class DBFPartition(idx: Int
 
 }
 
-class DBFReaderRDD[T: ClassTag](sparkContext: SparkContext,
+class DBFReaderRDD[T: ClassTag,V<:DBFParam](sparkContext: SparkContext,
                                 path: String,
-                                conv: (DBFOffsetReader, Array[AnyRef]) => T,
+                                conv: (Int,Array[DBFField], Array[AnyRef],List[V]) => T,
                                 charSet: String,
                                 showDeletedRows:Boolean,
                                 userName: String,
                                 connectTimeout: Int,
                                 maxRetries: Int,
-                                partitions: Array[Partition]) extends RDD[T](sparkContext, deps = Nil) {
+                                partitions: Array[Partition],
+                                param:List[V]=Nil,
+                                adjustFields:(Array[DBFField])=> Unit) extends RDD[T](sparkContext, deps = Nil) {
   override def compute(split: Partition, context: TaskContext): Iterator[T] = {
     val partition = split.asInstanceOf[DBFPartition]
 
@@ -41,20 +43,21 @@ class DBFReaderRDD[T: ClassTag](sparkContext: SparkContext,
     conf.set("ipc.client.connect.max.retries.on.timeouts", maxRetries.toString) // 重试次数1
     val fs = FileSystem.get(URI.create(path), conf, userName)
     val inputStream = fs.open(new Path(path))
-    val reader = new DBFOffsetReader(inputStream,Charset.forName(charSet))
+    val reader = new DBFOffsetReader(inputStream,Charset.forName(charSet),showDeletedRows)
+
+    adjustFields(reader.getFields())
     val recoderCount = reader.getRecordCount
 
     val result: mutable.ListBuffer[T] = ListBuffer()
     val (startOffset, endOffset) = DBFReaderRDD.calcOffset(recoderCount, partition.idx, partitions.size)
    // println(s"Idx:${partition.idx}=${startOffset}-${endOffset}")
-    if (recoderCount != 0 || startOffset == endOffset) {
+    if (recoderCount != 0 && startOffset != endOffset) {
       reader.setStartOffset(startOffset)
       reader.partitionIdx = partition.idx
 
+
+      //println(s"ptn:${partition.idx}:${startOffset}-${endOffset}")
       reader.setEndOffset(endOffset)
-      if(startOffset==12&& endOffset==12){
-        println("12")
-      }
 
       var rowObjects: Array[AnyRef] = null
 
@@ -70,8 +73,9 @@ class DBFReaderRDD[T: ClassTag](sparkContext: SparkContext,
               break
             }
             else {
-              val cd = conv(reader, rowObjects)
-              cd
+             // println(s"=======:${partition.idx}:${reader.getCurrentOffset}")
+              val cd = conv(reader.getCurrentOffset,reader.getFields, rowObjects,param)
+
               result += (cd)
             }
           }
