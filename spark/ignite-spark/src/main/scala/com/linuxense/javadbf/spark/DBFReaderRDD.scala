@@ -1,14 +1,13 @@
-package com.szkingdom.fspt.dao.file.dbf
+package com.linuxense.javadbf.spark
 
 import java.net.URI
 import java.nio.charset.Charset
 
-import com.linuxense.javadbf.{DBFField, DBFOffsetReader, DBFReader}
+import com.linuxense.javadbf.{DBFField, DBFOffsetReader}
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.Row
 import org.apache.spark.{Partition, SparkContext, TaskContext}
 
 import scala.collection.mutable

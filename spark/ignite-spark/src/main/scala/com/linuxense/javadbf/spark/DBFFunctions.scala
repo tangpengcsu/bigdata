@@ -1,11 +1,11 @@
-package com.szkingdom.fspt.dao.file.dbf
+package com.linuxense.javadbf.spark
 
 import java.nio.charset.Charset
 
-import com.linuxense.javadbf.{DBFField}
+import com.linuxense.javadbf.DBFField
 import org.apache.spark.rdd.RDD
-import org.apache.spark.{Partition, SparkContext}
 import org.apache.spark.sql.Row
+import org.apache.spark.{Partition, SparkContext}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -38,7 +38,7 @@ class DBFFunctions(@transient val sc: SparkContext) extends Serializable {
   def defaultAdjustLength(fields:Array[DBFField])={
 
   }
-  private[dbf] def rowConvert(offset:Int,fields: Array[DBFField], data: Array[AnyRef],dBFOptParam:List[DBFOptParam]): Row = {
+  private[spark] def rowConvert(offset:Int,fields: Array[DBFField], data: Array[AnyRef],dBFOptParam:List[DBFOptParam]): Row = {
 
     val arrayBuffer = ArrayBuffer[AnyRef](offset.asInstanceOf[AnyRef])
 

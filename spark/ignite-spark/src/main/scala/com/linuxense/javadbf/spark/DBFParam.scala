@@ -1,4 +1,4 @@
-package com.szkingdom.fspt.dao.file.dbf
+package com.linuxense.javadbf.spark
 
 sealed trait DBFParam {
 

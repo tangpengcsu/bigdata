@@ -2,7 +2,7 @@ package org.apache.ignite.spark
 
 import java.nio.charset.Charset
 
-import com.szkingdom.fspt.dao.file.dbf.DBFOptParam
+import com.linuxense.javadbf.spark.DBFOptParam
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.{Row, SparkSession}
 import org.scalatest.FunSuite
@@ -30,7 +30,7 @@ class DBFTest extends FunSuite{
     path = filePath+"0904保证金日结表.DBF"
     path = filePath+"jsmx13.dbf"
    // path = "file:///H://后台业务系统//清算文件//SJSMX10901.DBF"
-    import com.szkingdom.fspt.dao.file.spark._
+    import com.linuxense.javadbf.spark._
     val optParam = List(DBFOptParam(0,"20180808"),DBFOptParam(1,"001"))
 
 
