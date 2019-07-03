@@ -2,8 +2,8 @@ package com.linuxense.javadbf.spark
 
 import java.net.URI
 import java.nio.charset.Charset
-
-import com.linuxense.javadbf.{DBFField, DBFOffsetReader}
+import scala.reflect.runtime.{universe => ru}
+import com.linuxense.javadbf.{DBFField, DBFOffsetReader, DBFRow, DBFSkipRow}
 import org.apache.commons.io.IOUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.deploy.SparkHadoopUtil
@@ -22,17 +22,18 @@ case class DBFPartition(idx: Int
 
 }
 
-class DBFReaderRDD[T: ClassTag,V<:DBFParam](sparkContext: SparkContext,
-                                path: String,
-                                conv: (Int,Array[DBFField], Array[AnyRef],List[V]) => T,
-                                charSet: String,
-                                showDeletedRows:Boolean,
-                                userName: String,
-                                connectTimeout: Int,
-                                maxRetries: Int,
-                                partitions: Array[Partition],
-                                param:List[V]=Nil,
-                                adjustFields:(Array[DBFField])=> Unit) extends RDD[T](sparkContext, deps = Nil) {
+class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
+                                               path: String,
+                                               conv: (Int, Array[DBFField], DBFRow, List[V], ru.RuntimeMirror,ru.ClassMirror,ru.MethodMirror,Iterable[ru.TermSymbol]) => T,
+                                               charSet: String,
+                                               showDeletedRows: Boolean,
+                                               userName: String,
+                                               connectTimeout: Int,
+                                               maxRetries: Int,
+                                               partitions: Array[Partition],
+                                               param: List[V] = Nil,
+                                               clazz: Class[_],
+                                               adjustFields: (Array[DBFField]) => Unit) extends RDD[T](sparkContext, deps = Nil) {
   override def compute(split: Partition, context: TaskContext): Iterator[T] = {
     val partition = split.asInstanceOf[DBFPartition]
 
@@ -42,14 +43,14 @@ class DBFReaderRDD[T: ClassTag,V<:DBFParam](sparkContext: SparkContext,
     conf.set("ipc.client.connect.max.retries.on.timeouts", maxRetries.toString) // 重试次数1
     val fs = FileSystem.get(URI.create(path), conf, userName)
     val inputStream = fs.open(new Path(path))
-    val reader = new DBFOffsetReader(inputStream,Charset.forName(charSet),showDeletedRows)
+    val reader = new DBFOffsetReader(inputStream, Charset.forName(charSet), showDeletedRows)
 
     adjustFields(reader.getFields())
     val recoderCount = reader.getRecordCount
 
     val result: mutable.ListBuffer[T] = ListBuffer()
     val (startOffset, endOffset) = DBFReaderRDD.calcOffset(recoderCount, partition.idx, partitions.size)
-   // println(s"Idx:${partition.idx}=${startOffset}-${endOffset}")
+    // println(s"Idx:${partition.idx}=${startOffset}-${endOffset}")
     if (recoderCount != 0 && startOffset != endOffset) {
       reader.setStartOffset(startOffset)
       reader.partitionIdx = partition.idx
@@ -57,23 +58,36 @@ class DBFReaderRDD[T: ClassTag,V<:DBFParam](sparkContext: SparkContext,
 
       //println(s"ptn:${partition.idx}:${startOffset}-${endOffset}")
       reader.setEndOffset(endOffset)
+      val runtimeMirror = ru.runtimeMirror(getClass.getClassLoader) //获取运行时类镜像
+      val classMirror = runtimeMirror.reflectClass(runtimeMirror.classSymbol(clazz))
+      val typeSignature = classMirror.symbol.typeSignature
 
-      var rowObjects: Array[AnyRef] = null
+
+      // val ctorC = typeSignature.decl(ru.termNames.CONSTRUCTOR).asMethod
+      val constructorSymbol = typeSignature.decl(ru.termNames.CONSTRUCTOR)
+        .filter(i => i.asMethod.paramLists.flatMap(_.iterator).isEmpty)
+        .asMethod
+      val constructorMethod = classMirror.reflectConstructor(constructorSymbol)
+      val reflectFields = typeSignature
+        .decls.
+        filter(i => i.isTerm && i.asTerm.isVar)
+        .map(i => i.asTerm)
+
+      var dbfRow: DBFRow = null
 
       breakable {
         while (true) {
-          rowObjects = reader.nextRecord()
-          if (rowObjects == null) {
+          dbfRow = reader.nextRow()
+          if (dbfRow == null) {
             break()
           }
           breakable {
 
-            if (rowObjects.length == 0) {
+            if (dbfRow.isInstanceOf[DBFSkipRow]) {
               break
             }
             else {
-             // println(s"=======:${partition.idx}:${reader.getCurrentOffset}")
-              val cd = conv(reader.getCurrentOffset,reader.getFields, rowObjects,param)
+              val cd = conv(reader.getCurrentOffset, reader.getFields, dbfRow, param, runtimeMirror,classMirror,constructorMethod,reflectFields)
 
               result += (cd)
             }
@@ -99,7 +113,6 @@ object DBFReaderRDD {
   def load(): Unit = {
 
   }
-
 
 
   def calcOffset(recordCount: Int,

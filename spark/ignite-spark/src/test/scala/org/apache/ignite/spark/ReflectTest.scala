@@ -96,9 +96,25 @@ class ReflectTest extends FunSuite {
       println(fm.get)
 
     })
-    println(vVal)
-    println(ref)
 
+    println(instance)
+    val instance1 = ctorm()
+    val ref2 = classMirror.reflect(instance1)
+    vVal.foreach(i => {
+
+      // i.accessed
+      val fm = ref2.reflectField(i)
+
+      print(fm.symbol.name + "-" + fm.get + "-")
+      if(i.name.toString.trim!="s"){
+        fm.set(Random.nextInt(1000))
+      }
+
+
+      println(fm.get)
+
+    })
+    println(instance1)
 
   }
 
@@ -141,5 +157,5 @@ class C(var i: Int,  var s:List[String]) {
    private val x = 2
    val y = 3
 
- // override def toString: String = s"x:${x},y:${y},i:${i},s:${s}"
+  override def toString: String = s"x:${x},y:${y},i:${i},s:${s}"
 }

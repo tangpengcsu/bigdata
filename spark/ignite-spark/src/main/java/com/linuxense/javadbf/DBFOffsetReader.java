@@ -137,4 +137,8 @@ public class DBFOffsetReader extends DBFReader {
     public void setEndOffset(int endOffset) {
         this.endOffset = endOffset;
     }
+
+    public Map<String, Integer> getMapFieldNames() {
+        return mapFieldNames;
+    }
 }

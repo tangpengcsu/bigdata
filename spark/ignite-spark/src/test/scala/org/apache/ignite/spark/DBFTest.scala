@@ -28,13 +28,15 @@ class DBFTest extends FunSuite{
    // path = filePath+"0904交易一级清算表.DBF"
     //path = filePath+"0904保证金日结表.DBF"
     path = filePath+"0904保证金日结表.DBF"
-    path = filePath+"jsmx13.dbf"
+    //path = filePath+"jsmx13.dbf"
    // path = "file:///H://后台业务系统//清算文件//SJSMX10901.DBF"
     import com.linuxense.javadbf.spark._
     val optParam = List(DBFOptParam(0,"20180808"),DBFOptParam(1,"001"))
 
 
-    val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)
+   // val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)
+    val clazz = Class.forName("org.apache.ignite.spark.RjbBean")
+   val s = sparkSession.sparkContext.loadAsBeanRDD[RjbBean](path,charset,partitionNum)
 /* val col= s.mapPartitionsWithIndex((p,d)=>{
 
    List((p,d.size)).iterator
@@ -43,6 +45,7 @@ class DBFTest extends FunSuite{
     s.foreachPartition(i=>{
       i.foreach(v=>{
         println(v)
+        //println(v.asInstanceOf[RjbBean].toString)
       })
     })
     println(s"sum:${s.count()}")
