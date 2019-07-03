@@ -12,11 +12,23 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 class BasicTest extends FunSuite {
-  test("") {
-    val result: mutable.ListBuffer[String] = ListBuffer()
-    result += ("fjksa")
-    result += ("2")
-    result.foreach(println(_))
+  test("1111") {
+    println(classOf[Int].getSimpleName)
+    println(classOf[Long].getSimpleName)
+    println(classOf[Short].getSimpleName)
+    println(classOf[Char].getSimpleName)
+    println(classOf[Float].getSimpleName)
+    println(classOf[String].getSimpleName)
+    println(classOf[Double].getSimpleName)
+    println(classOf[BigDecimal].getSimpleName)
+    println(classOf[java.math.BigDecimal].getSimpleName)
+    println(classOf[java.lang.Float].getSimpleName)
+    println(classOf[java.lang.Double].getSimpleName)
+    println(classOf[java.lang.Short].getSimpleName)
+    println(classOf[java.lang.Character].getSimpleName)
+    println(classOf[java.lang.String].getSimpleName)
+    println(classOf[java.lang.Integer].getSimpleName)
+    println(classOf[java.lang.Long].getSimpleName)
   }
 
 

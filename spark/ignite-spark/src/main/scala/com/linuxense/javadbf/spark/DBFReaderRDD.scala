@@ -10,7 +10,7 @@ import org.apache.hadoop.fs.{FSDataInputStream, FileSystem, Path}
 import org.apache.spark.deploy.SparkHadoopUtil
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, SparkContext, TaskContext}
-
+import com.linuxense.javadbf.spark.Utils._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.ClassTag
@@ -23,7 +23,7 @@ case class DBFPartition(idx: Int) extends Partition {
 
 class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
                                                path: String,
-                                               conv: (Int, Array[DBFField], DBFRow, List[V], ru.RuntimeMirror, ru.ClassMirror, ru.MethodMirror, Iterable[ru.TermSymbol]) => T,
+                                               conv: (Int, Array[DBFField], DBFRow, List[V], ru.RuntimeMirror, ru.ClassMirror, ru.MethodMirror, Iterable[Tuple2[ru.TermSymbol,Option[String]]]) => T,
                                                charSet: String,
                                                showDeletedRows: Boolean,
                                                userName: String,
@@ -35,7 +35,6 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
                                                adjustFields: (Array[DBFField]) => Unit) extends RDD[T](sparkContext, deps = Nil) {
   override def compute(split: Partition, context: TaskContext): Iterator[T] = {
     val partition = split.asInstanceOf[DBFPartition]
-
     var fs: FileSystem = null
     var inputStream: FSDataInputStream = null
     var reader: DBFOffsetReader = null
@@ -48,15 +47,18 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
       inputStream = fs.open(new Path(path))
       reader = new DBFOffsetReader(inputStream, Charset.forName(charSet), showDeletedRows)
 
-      adjustFields(reader.getFields())
+      adjustFields(reader.getFields())//调整字段长度
+
       val recoderCount = reader.getRecordCount
 
       val result: mutable.ListBuffer[T] = ListBuffer()
       val (startOffset, endOffset) = DBFReaderRDD.calcOffset(recoderCount, partition.idx, partitions.size)
+
+      logInfo(s"分区${partition.idx} 读取文件第 ${startOffset} 条至 ${endOffset} 条数据！")
+
       if (recoderCount != 0 && startOffset != endOffset) {
         reader.setStartOffset(startOffset)
         reader.partitionIdx = partition.idx
-
         reader.setEndOffset(endOffset)
         val runtimeMirror = ru.runtimeMirror(getClass.getClassLoader) //获取运行时类镜像
         val classMirror = runtimeMirror.reflectClass(runtimeMirror.classSymbol(clazz))
@@ -69,8 +71,17 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
         val constructorMethod = classMirror.reflectConstructor(constructorSymbol)
         val reflectFields = typeSignature
           .decls.
-          filter(i => i.isTerm && i.asTerm.isVar)
-          .map(i => i.asTerm)
+          filter(i => i.isTerm && (i.asTerm.isVar||i.asTerm.isVal))
+          .map(i => {
+            val fieldAnn = i.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp])
+            val ann = if(fieldAnn.isDefined){
+              Some(getAnnotationData(fieldAnn.get.tree).name)
+            }else{
+              logWarning(s"类 ${clazz.getName} 的字段 ${i.name} 未定义注解!")
+              None
+            }
+            Tuple2(i.asTerm,ann)
+          })
 
         var dbfRow: DBFRow = null
 

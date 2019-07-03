@@ -31,7 +31,7 @@ class DBFTest extends FunSuite{
     //path = filePath+"jsmx13.dbf"
    // path = "file:///H://后台业务系统//清算文件//SJSMX10901.DBF"
     import com.linuxense.javadbf.spark._
-    val optParam = List(DBFOptParam(0,"20180808"),DBFOptParam(1,"001"))
+    val optParam = List(DBFOptDFParam("settDate",20180808),DBFOptDFParam("settBatNo",1))
 
 
      //val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)

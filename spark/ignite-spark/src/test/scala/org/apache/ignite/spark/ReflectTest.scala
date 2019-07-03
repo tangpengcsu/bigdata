@@ -1,6 +1,6 @@
 package org.apache.ignite.spark
 
-import com.linuxense.javadbf.spark.{DBFFieldProp}
+import com.linuxense.javadbf.spark.{DBFFieldProp, Utils}
 import javassist.bytecode.stackmap.TypeTag
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
@@ -84,6 +84,15 @@ class ReflectTest extends FunSuite {
     val instance = ctorm()
     val vVal = typeSignature.decls.filter(i => i.isTerm && i.asTerm.isVar).map(i => i.asTerm)
     val ref = classMirror.reflect(instance)
+
+
+    val ann = vVal.map(i=>{
+      val  optAnn= i.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp])
+      (i,optAnn)
+
+    })
+
+    //vVal.map(i=>i.annotations.)
     vVal.foreach(i => {
 
      // i.accessed
@@ -93,8 +102,9 @@ class ReflectTest extends FunSuite {
       val z = i.typeSignature.typeSymbol.name.getClass
 
       //println(fm.symbol.name + "-" + fm.get + "-"+fm.symbol.typeSignature.typeSymbol.name.decodedName.toString+"-"+fm.symbol.annotations+"||")
-      val ann = fm.symbol.annotations
-      val f  = fm.symbol.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp]).get
+/*      val ann = fm.symbol.annotations
+      val f  = fm.symbol.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp]).get*/
+
 
 
 
@@ -109,13 +119,14 @@ class ReflectTest extends FunSuite {
      new DBFFieldProp(name)
    }
 
-      val z1= getCustomAnnotationData(f.tree)
+
+     // val z1= getCustomAnnotationData(f.tree)
 
 
    /*   if(i.name.toString.trim!="s"){
         fm.set(Random.nextInt(1000))
       }*/
-      println(z1)
+     // println(z1)
 
 
      // println(fm.get)

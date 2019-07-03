@@ -25,6 +25,20 @@ object Utils {
 
     }
   }
+
+  def tranClassData(dataType:Class[_],value:Any): Unit ={
+    dataType.getSimpleName match {
+      case "String"=>
+      case "BigDecimal"=>
+      case "int"|"Integer"=>
+      case "short"|"Short"=>
+      case "long"|"Long"=>
+      case "float"|"Float"=>
+      case "double"|"Double"=>
+      case _=>throw new IllegalArgumentException(s"不支持改反射数据类型：${dataType}")
+    }
+
+  }
   //获取dbf字段注解
   def getAnnotationData(tree: Tree) = {
     val Apply(_, Literal(Constant(name: String)) :: Nil) = tree

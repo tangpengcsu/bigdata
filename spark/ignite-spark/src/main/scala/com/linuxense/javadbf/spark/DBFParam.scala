@@ -7,4 +7,4 @@ sealed trait DBFParam {
 }
 case class DBFOptParam(orderSn:Int, data:AnyRef) extends DBFParam
 
-case class DBFOptDFParam(name:String,dataType:DataType) extends DBFParam
+case class DBFOptDFParam(name:String,value:Any) extends DBFParam
