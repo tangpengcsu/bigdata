@@ -70,6 +70,9 @@ class ReflectTest extends FunSuite {
 
   test("classmirror") {
     val z = classOf[List[String]]
+    var v :Short=1
+    val v1:Int = 2
+    v=v1.toShort
 
     val classMirror = ru.runtimeMirror(getClass.getClassLoader) //获取运行时类镜像
     val classSymbol = classMirror.classSymbol(Class.forName("org.apache.ignite.spark.C"))
@@ -87,34 +90,23 @@ class ReflectTest extends FunSuite {
      // i.accessed
       val fm = ref.reflectField(i)
 
-      print(fm.symbol.name + "-" + fm.get + "-")
-      if(i.name.toString.trim!="s"){
-        fm.set(Random.nextInt(1000))
+
+      val z = i.typeSignature.typeSymbol.name.getClass
+      if(fm.symbol.name.decodedName.toString=="h "|| fm.symbol.name.decodedName.toString=="m "){
+        println(fm)
       }
+      println(fm.symbol.name + "-" + fm.get + "-"+fm.symbol.typeSignature.typeSymbol.name.decodedName.toString+"-"+"||")
+   /*   if(i.name.toString.trim!="s"){
+        fm.set(Random.nextInt(1000))
+      }*/
 
 
-      println(fm.get)
+     // println(fm.get)
 
     })
 
     println(instance)
-    val instance1 = ctorm()
-    val ref2 = classMirror.reflect(instance1)
-    vVal.foreach(i => {
 
-      // i.accessed
-      val fm = ref2.reflectField(i)
-
-      print(fm.symbol.name + "-" + fm.get + "-")
-      if(i.name.toString.trim!="s"){
-        fm.set(Random.nextInt(1000))
-      }
-
-
-      println(fm.get)
-
-    })
-    println(instance1)
 
   }
 
@@ -156,6 +148,19 @@ class C(var i: Int,  var s:List[String]) {
 
    private val x = 2
    val y = 3
-
+  val w:String ="1"
+  val h:BigDecimal =  BigDecimal(1)
+  val m:java.math.BigDecimal = new java.math.BigDecimal("11")
+  val n :Integer=12
+  val j:Char = '1'
+  val z:Character = '2'
+  val v:Long = 1
+  val a:java.lang.Long = null
+  val b:Float=1
+  val b1:java.lang.Float=null
+  val b2:Double = 0
+  val b3:java.lang.Double = null
+  val b5:Short = 1
+  val b6:java.lang.Short = null
   override def toString: String = s"x:${x},y:${y},i:${i},s:${s}"
 }

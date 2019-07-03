@@ -34,7 +34,7 @@ class DBFTest extends FunSuite{
     val optParam = List(DBFOptParam(0,"20180808"),DBFOptParam(1,"001"))
 
 
-   // val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)
+     //val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)
     val clazz = Class.forName("org.apache.ignite.spark.RjbBean")
    val s = sparkSession.sparkContext.loadAsBeanRDD[RjbBean](path,charset,partitionNum)
 /* val col= s.mapPartitionsWithIndex((p,d)=>{
