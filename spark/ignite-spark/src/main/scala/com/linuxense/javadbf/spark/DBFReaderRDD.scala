@@ -54,7 +54,7 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
       val result: mutable.ListBuffer[T] = ListBuffer()
       val (startOffset, endOffset) = DBFReaderRDD.calcOffset(recoderCount, partition.idx, partitions.size)
 
-      logInfo(s"分区${partition.idx} 读取文件第 ${startOffset} 条至 ${endOffset} 条数据！")
+
 
       if (recoderCount != 0 && startOffset != endOffset) {
         reader.setStartOffset(startOffset)
@@ -97,7 +97,7 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
         }
 
       }
-
+      logInfo(s"分区${partition.idx} 读取文件第 ${startOffset} 条至 ${endOffset} 条记录，共读取 ${result.size} 条数据！")//读取记录数小于计划读取数：DBF 中有记录标记未删除
       result.iterator
     } finally {
       IOUtils.closeQuietly(reader)

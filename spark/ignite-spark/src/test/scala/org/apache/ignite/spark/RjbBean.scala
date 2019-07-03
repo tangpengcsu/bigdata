@@ -8,6 +8,7 @@ class RjbBean extends Serializable {
 
   var settDate: Int = _
   var settBatNo: Int = _
+  var sn:Long=_
 
   @BeanProperty
   @DBFFieldProp("item_le000")
@@ -21,5 +22,5 @@ class RjbBean extends Serializable {
   @DBFFieldProp("item_de002")
   val ITEM_DE002: String="1"
 
-  override def toString: String = s"${settDate}-${settBatNo}==${item_le000}-${asset_l001}-${ASSET_D003}-${incomepay}-${ITEM_DE002}"
+  override def toString: String = s"${sn}-${settDate}-${settBatNo}==${item_le000}-${asset_l001}-${ASSET_D003}-${incomepay}-${ITEM_DE002}"
 }

@@ -6,7 +6,7 @@ import com.linuxense.javadbf.spark.Utils._
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.{universe => ru}
 
-sealed trait DBFDataHandler[V <: DBFParam] extends org.apache.spark.internal.Logging {
+sealed trait DBFDataHandler[V <: DBFParam] extends Serializable with org.apache.spark.internal.Logging {
   def process[T](offset: Int,
                  fields: Array[DBFField],
                  data: DBFRow,
@@ -23,7 +23,7 @@ object DBFRowHandler extends DBFDataHandler[DBFOptParam] {
     val arrayBuffer = ArrayBuffer[Any](offset)
 
     dBFOptParam.sortBy(_.orderSn).foreach(i => {
-      arrayBuffer += i.data
+      arrayBuffer += i.value
     })
     for (idx <- 0 until (fields.length)) {
       arrayBuffer += data.getObject(idx)
@@ -33,7 +33,26 @@ object DBFRowHandler extends DBFDataHandler[DBFOptParam] {
     row.asInstanceOf[T]
   }
 }
+object DBFRowOrderHandler extends DBFDataHandler[DBFOptParam] {
+  override def process[T](offset: Int, fields: Array[DBFField],
+                          data: DBFRow, dBFOptParam: List[DBFOptParam],
+                          runTimeMirror: ru.RuntimeMirror,
+                          classMirror: ru.ClassMirror,
+                          constructor: ru.MethodMirror,
+                          classFields: Iterable[Tuple2[ru.TermSymbol, Option[String]]]): T = {
+    val arrayBuffer = ArrayBuffer[Any](offset)
 
+    dBFOptParam.sortBy(_.orderSn).foreach(i => {
+      arrayBuffer += i.value
+    })
+    for (idx <- 0 until (fields.length)) {
+      arrayBuffer += data.getObject(idx)
+    }
+
+    val row = Row.fromSeq(arrayBuffer)
+    row.asInstanceOf[T]
+  }
+}
 object DBFBeanHandler extends DBFDataHandler[DBFOptDFParam] {
   override def process[T](offset: Int,
                           fields: Array[DBFField],
@@ -65,7 +84,12 @@ object DBFBeanHandler extends DBFDataHandler[DBFOptDFParam] {
       classFields.find(f => f._1.name.decodedName.toString.trim == i.name) match {
         case Some(ff) =>
           val fm = ref.reflectField(ff._1)
-          fm.set(i.value)
+          val v = if (i.isCounter) {
+            offset
+          } else {
+            i.value
+          }
+          fm.set(v)
         case None => logWarning(s"自定义字段${i.name}未定义在 ${ref.symbol.name} 类中！")
       }
 

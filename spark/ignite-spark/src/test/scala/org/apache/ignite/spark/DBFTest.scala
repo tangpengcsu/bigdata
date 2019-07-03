@@ -31,12 +31,12 @@ class DBFTest extends FunSuite{
     //path = filePath+"jsmx13.dbf"
    // path = "file:///H://后台业务系统//清算文件//SJSMX10901.DBF"
     import com.linuxense.javadbf.spark._
-    val optParam = List(DBFOptDFParam("settDate",20180808),DBFOptDFParam("settBatNo",1))
+    val optParam = List(DBFOptDFParam("settDate",20180808),DBFOptDFParam("settBatNo",1),DBFOptDFParam("sn",null,true))
 
 
      //val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)
     val clazz = Class.forName("org.apache.ignite.spark.RjbBean")
-   val s = sparkSession.sparkContext.loadAsBeanRDD[RjbBean](path,charset,partitionNum)
+   val s = sparkSession.sparkContext.loadAsBeanRDD[RjbBean](path,charset,partitionNum,optParam)
 /* val col= s.mapPartitionsWithIndex((p,d)=>{
 
    List((p,d.size)).iterator
