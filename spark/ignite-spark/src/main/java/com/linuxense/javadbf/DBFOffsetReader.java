@@ -57,7 +57,7 @@ public class DBFOffsetReader extends DBFReader {
             return null;
         }
         if (record.length == 0) {
-            return new DBFSkipRow(record, mapFieldNames, this.header.fieldArray);
+            return nextRow();
         } else {
             return new DBFRow(record, mapFieldNames, this.header.fieldArray);
         }
@@ -90,8 +90,6 @@ public class DBFOffsetReader extends DBFReader {
                     } while (isDeleted && !showDeletedRows);
 
                     skip(this.header.recordLength - 1);
-                   // System.out.println("ommit:" + currentOffset);
-                    //System.out.println("paritionIdx:"+partitionIdx+";old:"+old+",currnet:"+currentOffset+",start"+startOffset+",end:"+endOffset);
                     return new Object[0];
                 }
             } catch (IOException e) {

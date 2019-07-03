@@ -80,15 +80,8 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
             if (dbfRow == null) {
               break()
             }
-            breakable {
-              if (dbfRow.isInstanceOf[DBFSkipRow]) {
-                break
-              }
-              else {
-                val data = conv(reader.getCurrentOffset, reader.getFields, dbfRow, param, runtimeMirror, classMirror, constructorMethod, reflectFields)
-                result += (data)
-              }
-            }
+            val data = conv(reader.getCurrentOffset, reader.getFields, dbfRow, param, runtimeMirror, classMirror, constructorMethod, reflectFields)
+            result += (data)
           }
         }
 

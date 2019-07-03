@@ -1,7 +1,7 @@
 package com.linuxense.javadbf.spark
 
 import com.linuxense.javadbf.DBFRow
-
+import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag
 
 object Utils {
@@ -25,6 +25,24 @@ object Utils {
 
     }
   }
+  //获取dbf字段注解
+  def getAnnotationData(tree: Tree) = {
+    val Apply(_, Literal(Constant(name: String)) :: Nil) = tree
+    new DBFFieldProp(name)
+  }
+  // 获取指定类型的注解信息，通过 Annotation.tree.tpe 获取注解的 Type 类型，以此进行筛选
+  def getClassAnnotation[T: TypeTag, U: TypeTag] =
+    symbolOf[T].annotations.find(_.tree.tpe =:= typeOf[U])
+
+  // 通过字段名称获取指定类型的注解信息，注意查找字段名称时添加空格
+  def getMemberAnnotation[T: TypeTag, U: TypeTag](memberName: String) =
+    typeOf[T].decl(TermName(s"$memberName ")).annotations.find(_.tree.tpe =:= typeOf[U])
+
+  // 通过方法名称和参数名称获取指定类型的注解信息
+  def getArgAnnotation[T: TypeTag, U: TypeTag](methodName: String, argName: String) =
+    typeOf[T].decl(TermName(methodName)).asMethod.paramLists.collect {
+      case symbols => symbols.find(_.name == TermName(argName))
+    }.headOption.fold(Option[Annotation](null))(_.get.annotations.find(_.tree.tpe =:= typeOf[U]))
 
 
 }

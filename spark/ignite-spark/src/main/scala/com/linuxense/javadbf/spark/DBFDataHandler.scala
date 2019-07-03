@@ -7,13 +7,13 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.{universe => ru}
 sealed trait DBFDataHandler[V <: DBFParam] {
     def process[T](offset: Int,
-                fields: Array[DBFField],
-                data: DBFRow,
-                dBFOptParam: List[V],
-                runTimeMirror: ru.RuntimeMirror,
-                classMirror: ru.ClassMirror,
-                constructor: ru.MethodMirror,
-                classFields: Iterable[ru.TermSymbol]
+                   fields: Array[DBFField],
+                   data: DBFRow,
+                   dBFOptParam: List[V],
+                   runTimeMirror: ru.RuntimeMirror,
+                   classMirror: ru.ClassMirror,
+                   constructor: ru.MethodMirror,
+                   classFields: Iterable[ru.TermSymbol]
                ):T
 }
 
@@ -47,7 +47,15 @@ object DBFBeanHandler extends DBFDataHandler[DBFOptDFParam]{
     classFields.foreach(i => {
       try {
         val fm = ref.reflectField(i)
-        val d = transData(fm.symbol.name.decodedName.toString.trim,fm.symbol.typeSignature.typeSymbol.name.decodedName.toString,data)
+        //先取注解ming，后取字段名
+        val annOpt = fm.symbol.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp])
+        val fieldName = if (annOpt.isDefined) {
+            getAnnotationData(annOpt.get.tree).name
+        } else {
+          fm.symbol.name.decodedName.toString.trim
+         }
+        val d = transData(fieldName, fm.symbol.typeSignature.typeSymbol.name.decodedName.toString, data)
+
         fm.set(d)
       } catch {
         case e: DBFFieldNotFoundException =>
@@ -56,6 +64,7 @@ object DBFBeanHandler extends DBFDataHandler[DBFOptDFParam]{
     })
     instance.asInstanceOf[T]
   }
+
 }
 
 

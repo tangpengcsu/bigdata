@@ -1,12 +1,14 @@
 package org.apache.ignite.spark
 
+import com.linuxense.javadbf.spark.{DBFFieldProp}
 import javassist.bytecode.stackmap.TypeTag
 import org.apache.spark.SparkConf
 import org.apache.spark.sql.SparkSession
-import org.json4s.scalap.scalasig.{ClassSymbol, SymbolInfo, TypeSymbol}
 import org.scalatest.FunSuite
 
+import scala.annotation.Annotation
 import scala.reflect.ClassTag
+import scala.reflect.internal.AnnotationInfos
 import scala.util.Random
 
 case class Fruits(id: Int, name: Int) {
@@ -69,13 +71,10 @@ class ReflectTest extends FunSuite {
 
 
   test("classmirror") {
-    val z = classOf[List[String]]
-    var v :Short=1
-    val v1:Int = 2
-    v=v1.toShort
+
 
     val classMirror = ru.runtimeMirror(getClass.getClassLoader) //获取运行时类镜像
-    val classSymbol = classMirror.classSymbol(Class.forName("org.apache.ignite.spark.C"))
+    val classSymbol = classMirror.classSymbol(Class.forName("org.apache.ignite.spark.RjbBean"))
     val reflectClass = classMirror.reflectClass(classSymbol)
     val typeSignature = reflectClass.symbol.typeSignature
     // val ctorC = typeSignature.decl(ru.termNames.CONSTRUCTOR).asMethod
@@ -83,7 +82,7 @@ class ReflectTest extends FunSuite {
     val ctorm = reflectClass.reflectConstructor(cons)
 
     val instance = ctorm()
-    val vVal = typeSignature.decls.filter(i => i.isTerm && i.asTerm.isVal).map(i => i.asTerm)
+    val vVal = typeSignature.decls.filter(i => i.isTerm && i.asTerm.isVar).map(i => i.asTerm)
     val ref = classMirror.reflect(instance)
     vVal.foreach(i => {
 
@@ -92,13 +91,31 @@ class ReflectTest extends FunSuite {
 
 
       val z = i.typeSignature.typeSymbol.name.getClass
-      if(fm.symbol.name.decodedName.toString=="h "|| fm.symbol.name.decodedName.toString=="m "){
-        println(fm)
-      }
-      println(fm.symbol.name + "-" + fm.get + "-"+fm.symbol.typeSignature.typeSymbol.name.decodedName.toString+"-"+"||")
+
+      //println(fm.symbol.name + "-" + fm.get + "-"+fm.symbol.typeSignature.typeSymbol.name.decodedName.toString+"-"+fm.symbol.annotations+"||")
+      val ann = fm.symbol.annotations
+      val f  = fm.symbol.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp]).get
+
+
+
+
+   /*   def getArgAnnotation[T: TypeTag, U: TypeTag](methodName: String, argName: String) =
+        ru.typeOf[T].decl(ru.TermName(methodName)).asMethod.paramLists.collect {
+          case symbols => symbols.find(_.name == ru.TermName(argName))
+        }.headOption.fold(Option[Annotation](null))(_.get.annotations.find(_.tree.tpe =:= ru.typeOf[U]))*/
+
+   def getCustomAnnotationData(tree: ru.Tree) = {
+     val ru.Apply(_, ru.Literal(ru.Constant(name: String)) :: Nil) = tree
+     new DBFFieldProp(name)
+   }
+
+      val z1= getCustomAnnotationData(f.tree)
+
+
    /*   if(i.name.toString.trim!="s"){
         fm.set(Random.nextInt(1000))
       }*/
+      println(z1)
 
 
      // println(fm.get)
