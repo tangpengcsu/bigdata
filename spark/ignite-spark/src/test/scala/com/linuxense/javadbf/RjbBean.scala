@@ -1,4 +1,4 @@
-package org.apache.ignite.spark
+package com.linuxense.javadbf
 
 import com.linuxense.javadbf.spark.DBFFieldProp
 

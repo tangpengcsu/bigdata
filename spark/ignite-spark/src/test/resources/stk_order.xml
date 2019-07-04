@@ -308,9 +308,9 @@
                                 <!-- <value>127.0.0.1:47500..47509</value>-->
                                 <value>192.168.50.88:47500..47509</value>
                        <!--         <value>10.202.83.202:47500..47509</value>-->
-                                <value>192.168.50.85:47500..47509</value>
+                       <!--         <value>192.168.50.85:47500..47509</value>
                                 <value>192.168.50.86:47500..47509</value>
-                                <value>192.168.50.87:47500..47509</value>
+                                <value>192.168.50.87:47500..47509</value>-->
 
                                 <!--     <value>10.202.83.202:47500..47509</value>
                                      <value>10.202.83.203:47500..47509</value>
@@ -347,6 +347,17 @@
                             <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
                             <property name="persistenceEnabled" value="false"/>
                         </bean>
+                        <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
+                            <property name="name" value="9GRegion"/>
+                            <property name="maxSize" value="#{9L * 1024 * 1024 * 1024}"/>
+                            <!-- 启用数据区指标 -->
+                            <property name="metricsEnabled" value="true"/>
+                            <!--退出策略:缓存空间不够时的删除条目的算法-->
+                            <property name="pageEvictionMode" value="RANDOM_LRU"/>
+                            <!--  开启原生持久化:启用WAL必须开启原生持久化，启用原生持久化后要把 rebalanceMode 设置为 SYNC -->
+                            <property name="persistenceEnabled" value="false"/>
+                        </bean>
+
                         <bean class="org.apache.ignite.configuration.DataRegionConfiguration">
                             <property name="name" value="500MRegion"/>
                             <property name="maxSize" value="#{500 * 1024 * 1024}"/>

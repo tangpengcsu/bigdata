@@ -69,11 +69,12 @@ class DBFReaderRDD[T: ClassTag, V <: DBFParam](sparkContext: SparkContext,
           .filter(i => i.asMethod.paramLists.flatMap(_.iterator).isEmpty)
           .asMethod
         val constructorMethod = classMirror.reflectConstructor(constructorSymbol)
-        val reflectFields = typeSignature
-          .decls.
-          filter(i => i.isTerm && (i.asTerm.isVar||i.asTerm.isVal))
+        //包含父类字段
+        val reflectFields = typeSignature.baseClasses
+          .flatMap(i=>i.asClass.typeSignature.decls)
+          .filter(i=>i.isTerm&& (i.asTerm.isVar|| i.asTerm.isVal))
           .map(i => {
-            val fieldAnn = i.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp])
+            val fieldAnn = i.asTerm.annotations.find(_.tree.tpe=:=ru.typeOf[DBFFieldProp])
             val ann = if(fieldAnn.isDefined){
               Some(getAnnotationData(fieldAnn.get.tree).name)
             }else{

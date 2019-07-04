@@ -74,7 +74,7 @@ class ReflectTest extends FunSuite {
 
 
     val classMirror = ru.runtimeMirror(getClass.getClassLoader) //获取运行时类镜像
-    val classSymbol = classMirror.classSymbol(Class.forName("org.apache.ignite.spark.RjbBean"))
+    val classSymbol = classMirror.classSymbol(Class.forName("com.linuxense.javadbf.RjbBean"))
     val reflectClass = classMirror.reflectClass(classSymbol)
     val typeSignature = reflectClass.symbol.typeSignature
     // val ctorC = typeSignature.decl(ru.termNames.CONSTRUCTOR).asMethod

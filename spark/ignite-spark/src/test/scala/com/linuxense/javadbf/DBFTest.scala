@@ -1,10 +1,9 @@
-package org.apache.ignite.spark
+package com.linuxense.javadbf
 
 import java.nio.charset.Charset
 
-import com.linuxense.javadbf.spark.DBFOptParam
 import org.apache.spark.SparkConf
-import org.apache.spark.sql.{Row, SparkSession}
+import org.apache.spark.sql.SparkSession
 import org.scalatest.FunSuite
 
 class DBFTest extends FunSuite{
@@ -35,7 +34,7 @@ class DBFTest extends FunSuite{
 
 
      //val s = sparkSession.sparkContext.loadAsRowRDD(path,charset,partitionNum,optParam)
-    val clazz = Class.forName("org.apache.ignite.spark.RjbBean")
+    val clazz = Class.forName("com.linuxense.javadbf.RjbBean")
    val s = sparkSession.sparkContext.loadAsBeanRDD[RjbBean](path,charset,partitionNum,optParam)
 /* val col= s.mapPartitionsWithIndex((p,d)=>{
 

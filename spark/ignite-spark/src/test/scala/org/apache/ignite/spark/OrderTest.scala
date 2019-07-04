@@ -55,8 +55,8 @@ class OrderTest extends FunSuite with BeforeAndAfter{
   }
 
   test("insert 1"){
-   insert(4000000,"stk_order1","stk_order1")
-     insert(5000000,"stk_order2","stk_order2")
+   insert(1000000,"stk_order1","stk_order1")
+     //insert(5000000,"stk_order2","stk_order2")
   }
 
   test(" none-Collocated  join  "){
